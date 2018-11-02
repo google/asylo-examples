@@ -21,11 +21,11 @@
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_cat.h"
 #include "asylo/crypto/aes_gcm_siv.h"
-#include "quickstart/demo.pb.h"
 #include "asylo/trusted_application.h"
 #include "asylo/util/cleansing_types.h"
 #include "asylo/util/status_macros.h"
 #include "asylo/util/statusor.h"
+#include "quickstart/demo.pb.h"
 
 #ifndef arraysize
 #define arraysize(arr) (sizeof(arr) / sizeof(arr[0]))
@@ -68,7 +68,8 @@ const StatusOr<std::string> EncryptMessage(const std::string &message) {
 // Decrypts a message using `kAesKey128`. Expects `nonce_and_ciphertext` to be
 // encoded as a hex string, and lead with a 12-byte nonce. Intended to be
 // used by the reader for completing the exercise.
-const StatusOr<std::string> DecryptMessage(const std::string &nonce_and_ciphertext) {
+const StatusOr<std::string> DecryptMessage(
+    const std::string &nonce_and_ciphertext) {
   std::string decoded_input = absl::HexStringToBytes(nonce_and_ciphertext);
   CleansingString clean_input(decoded_input.data(), decoded_input.size());
 

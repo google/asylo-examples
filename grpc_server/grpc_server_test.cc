@@ -32,12 +32,12 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
-#include "grpc_server/translator_server.grpc.pb.h"
-#include "gflags/gflags.h"
-#include "asylo/util/logging.h"
 #include "asylo/test/util/exec_tester.h"
 #include "asylo/test/util/status_matchers.h"
+#include "asylo/util/logging.h"
 #include "asylo/util/status.h"
+#include "gflags/gflags.h"
+#include "grpc_server/translator_server.grpc.pb.h"
 #include "include/grpcpp/grpcpp.h"
 #include "include/grpcpp/security/credentials.h"
 #include "include/grpcpp/security/server_credentials.h"
@@ -65,7 +65,7 @@ class ServerEnclaveExecTester : public asylo::experimental::ExecTester {
  public:
   ServerEnclaveExecTester(const std::vector<std::string> &args,
                           absl::Mutex *server_port_mutex, int *server_port)
-        : ExecTester(args),
+      : ExecTester(args),
         server_port_found_(false),
         server_thread_state_mutex_(server_port_mutex),
         server_port_(server_port) {}
@@ -174,7 +174,8 @@ class GrpcServerTest : public ::testing::Test {
   // Sends a GetTranslation RPC to the server. Returns the same grpc::Status as
   // the stub function call. If the RPC is successful, then sets
   // |*translated_word| to the received translation.
-  asylo::Status MakeRpc(const std::string &input_word, std::string *translated_word) {
+  asylo::Status MakeRpc(const std::string &input_word,
+                        std::string *translated_word) {
     ::grpc::ClientContext context;
     GetTranslationRequest request;
     GetTranslationResponse response;

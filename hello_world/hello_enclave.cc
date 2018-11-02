@@ -17,12 +17,12 @@
  */
 
 #include <cstdint>
-#include <unordered_set>
 
 #include "absl/strings/str_cat.h"
-#include "hello_world/hello.pb.h"
 #include "asylo/trusted_application.h"
+#include "asylo/util/logging.h"
 #include "asylo/util/status.h"
+#include "hello_world/hello.pb.h"
 
 class HelloApplication : public asylo::TrustedApplication {
  public:
@@ -49,7 +49,7 @@ class HelloApplication : public asylo::TrustedApplication {
   }
 
  private:
-  std::uint64_t visitor_count_;
+  uint64_t visitor_count_;
 };
 
 namespace asylo {

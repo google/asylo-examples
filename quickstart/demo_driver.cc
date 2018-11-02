@@ -20,9 +20,9 @@
 #include <string>
 
 #include "asylo/client.h"
-#include "quickstart/demo.pb.h"
-#include "gflags/gflags.h"
 #include "asylo/util/logging.h"
+#include "gflags/gflags.h"
+#include "quickstart/demo.pb.h"
 
 DEFINE_string(enclave_path, "", "Path to enclave binary image to load");
 DEFINE_string(message, "", "Message to encrypt");
@@ -43,7 +43,7 @@ const std::string GetEnclaveOutputMessage(const asylo::EnclaveOutput &output) {
 
 int main(int argc, char *argv[]) {
   ::google::ParseCommandLineFlags(&argc, &argv,
-                                  /*remove_flags=*/ true);
+                                  /*remove_flags=*/true);
 
   LOG_IF(QFATAL, FLAGS_message.empty()) << "Empty --message flag";
 

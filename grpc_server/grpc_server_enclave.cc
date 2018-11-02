@@ -20,10 +20,10 @@
 #include <memory>
 
 #include "absl/synchronization/mutex.h"
-#include "grpc_server/grpc_server_config.pb.h"
-#include "grpc_server/translator_server.h"
 #include "asylo/trusted_application.h"
 #include "asylo/util/status.h"
+#include "grpc_server/grpc_server_config.pb.h"
+#include "grpc_server/translator_server.h"
 #include "include/grpcpp/grpcpp.h"
 #include "include/grpcpp/security/server_credentials.h"
 #include "include/grpcpp/server.h"

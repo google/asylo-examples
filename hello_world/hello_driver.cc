@@ -21,9 +21,9 @@
 #include <vector>
 #include "absl/strings/str_split.h"
 #include "asylo/client.h"
-#include "hello_world/hello.pb.h"
-#include "gflags/gflags.h"
 #include "asylo/util/logging.h"
+#include "gflags/gflags.h"
+#include "hello_world/hello.pb.h"
 
 DEFINE_string(enclave_path, "", "Path to enclave to load");
 DEFINE_string(names, "",

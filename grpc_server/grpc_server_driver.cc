@@ -18,9 +18,9 @@
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "asylo/client.h"
-#include "grpc_server/grpc_server_config.pb.h"
-#include "gflags/gflags.h"
 #include "asylo/util/logging.h"
+#include "gflags/gflags.h"
+#include "grpc_server/grpc_server_config.pb.h"
 
 DEFINE_string(enclave_path, "", "Path to enclave to load");
 
@@ -34,8 +34,7 @@ constexpr char kServerAddress[] = "[::1]:0";
 
 int main(int argc, char *argv[]) {
   // Parse command-line arguments.
-  google::ParseCommandLineFlags(
-      &argc, &argv, /*remove_flags=*/true);
+  google::ParseCommandLineFlags(&argc, &argv, /*remove_flags=*/true);
 
   // Create a loader object using the enclave_path flag.
   asylo::SimLoader loader(FLAGS_enclave_path, /*debug=*/true);
