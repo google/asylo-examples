@@ -1,11 +1,13 @@
 workspace(name = "asylo_examples")
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 # Download and use the Asylo SDK.
 http_archive(
     name = "com_google_asylo",
-    urls = ["https://github.com/google/asylo/archive/v0.3.1.tar.gz"],
-    strip_prefix = "asylo-0.3.1",
-    sha256 = "9cde12db341b39df263b501903fab6b93c0d8de87eaf0c0a047b5a8e1ac541f4",
+    urls = ["https://github.com/google/asylo/archive/v0.3.2.tar.gz"],
+    strip_prefix = "asylo-0.3.2",
+    sha256 = "4af6fcc16b7dc1ba8cccdce9086859e66f180f042b946abd8a45ed76dd330016",
 )
 load("@com_google_asylo//asylo/bazel:asylo_deps.bzl", "asylo_deps",
      "asylo_testonly_deps")
