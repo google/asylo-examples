@@ -27,14 +27,13 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include "absl/base/thread_annotations.h"
 #include "absl/memory/memory.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
-#include "absl/time/time.h"
 #include "asylo/test/util/exec_tester.h"
 #include "asylo/test/util/status_matchers.h"
-#include "asylo/util/logging.h"
 #include "asylo/util/status.h"
 #include "gflags/gflags.h"
 #include "grpc_server/translator_server.grpc.pb.h"
@@ -45,8 +44,8 @@
 DEFINE_string(enclave_path, "",
               "The path to the server enclave to pass to the enclave loader");
 
-// The number of seconds to run the server for this test.
-constexpr int kServerLifetime = 1;
+DEFINE_int32(server_max_lifetime, 10,
+             "The number of seconds to allow the server to run for this test");
 
 // A regex matching the log message that contains the port.
 constexpr char kPortMessageRegex[] = "Server started on port [0-9]+";
@@ -118,7 +117,7 @@ class GrpcServerTest : public ::testing::Test {
         asylo::experimental::ExecTester::BuildSiblingPath(
             FLAGS_enclave_path, "grpc_server_host_loader"),
         absl::StrCat("--enclave_path=", FLAGS_enclave_path),
-        absl::StrCat("--server_lifetime=", kServerLifetime),
+        absl::StrCat("--server_max_lifetime=", FLAGS_server_max_lifetime),
     });
 
     server_port_found_ = false;
@@ -159,6 +158,12 @@ class GrpcServerTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    ::grpc::ClientContext context;
+    ShutdownRequest request;
+    ShutdownResponse response;
+    EXPECT_THAT(asylo::Status(stub_->Shutdown(&context, request, &response)),
+                IsOk());
+
     server_thread_->join();
     ASSERT_TRUE(server_port_found_);
     ASSERT_TRUE(WIFEXITED(server_exit_status_))
@@ -242,8 +247,8 @@ TEST_F(GrpcServerTest, KubernetesTranslatesToHelmsman) {
 TEST_F(GrpcServerTest, OrkutTranslationNotFound) {
   std::string orkut_translation;
   asylo::Status status = MakeRpc("orkut", &orkut_translation);
-  ASSERT_THAT(status, StatusIs(asylo::error::INVALID_ARGUMENT));
-  EXPECT_EQ(status.error_message(), "No known translation for \"orkut\"");
+  EXPECT_THAT(status, StatusIs(asylo::error::INVALID_ARGUMENT,
+                               "No known translation for \"orkut\""));
 }
 
 }  // namespace

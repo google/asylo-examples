@@ -14,14 +14,6 @@
 # limitations under the License.
 #
 
-licenses(["notice"])  # Apache v2.0
-
-# Example demonstrating gRPC in Asylo.
-
-package(
-    default_visibility = ["//visibility:public"],
-)
-
 load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
     "enclave_loader",
@@ -32,6 +24,14 @@ load(
     "@com_google_asylo//asylo/bazel:proto.bzl",
     "asylo_proto_library",
     "asylo_grpc_proto_library",
+)
+
+licenses(["notice"])  # Apache v2.0
+
+# Example demonstrating gRPC in Asylo.
+
+package(
+    default_visibility = ["//visibility:public"],
 )
 
 # The generated code for the translator server (and client).
@@ -48,8 +48,10 @@ cc_library(
     deps = [
         ":translator_server_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -70,8 +72,10 @@ sim_enclave(
         ":translator_server",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@com_google_asylo//asylo:enclave_runtime",
         "@com_google_asylo//asylo/util:status",
     ],
@@ -86,8 +90,6 @@ enclave_loader(
     deps = [
         ":grpc_server_config_proto_cc",
         "@com_github_gflags_gflags//:gflags_nothreads",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
         "@com_google_asylo//asylo:enclave_client",
         "@com_google_asylo//asylo/util:logging",
     ],
@@ -105,14 +107,13 @@ enclave_test(
         ":translator_server_grpc_proto",
         "@com_github_gflags_gflags//:gflags_nothreads",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
         "@com_google_asylo//asylo/test/util:exec_tester",
         "@com_google_asylo//asylo/test/util:status_matchers",
         "@com_google_asylo//asylo/test/util:test_main",
-        "@com_google_asylo//asylo/util:logging",
         "@com_google_asylo//asylo/util:status",
         "@com_google_googletest//:gtest",
     ],
