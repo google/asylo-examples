@@ -15,6 +15,7 @@
  * limitations under the License.
  *
  */
+
 #include "asylo/client.h"
 #include "asylo/util/logging.h"
 #include "gflags/gflags.h"

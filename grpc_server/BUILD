@@ -18,7 +18,8 @@ load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
     "enclave_loader",
     "sim_enclave",
-    "enclave_test",
+    "sgx_enclave_test",
+    "ASYLO_ALL_BACKENDS",
 )
 load(
     "@com_google_asylo//asylo/bazel:proto.bzl",
@@ -38,6 +39,7 @@ package(
 asylo_grpc_proto_library(
     name = "translator_server_grpc_proto",
     srcs = ["translator_server.proto"],
+    tags = ASYLO_ALL_BACKENDS,
 )
 
 # The implementation of the translation server.
@@ -45,6 +47,7 @@ cc_library(
     name = "translator_server",
     srcs = ["translator_server.cc"],
     hdrs = ["translator_server.h"],
+    tags = ASYLO_ALL_BACKENDS,
     deps = [
         ":translator_server_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
@@ -97,7 +100,7 @@ enclave_loader(
 
 # A test of the example using the generated client stubs rather than the gRPC
 # command-line interface.
-enclave_test(
+sgx_enclave_test(
     name = "grpc_server_test",
     srcs = ["grpc_server_test.cc"],
     data = [":grpc_server_host_loader"],

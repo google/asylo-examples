@@ -19,6 +19,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "absl/strings/str_split.h"
 #include "asylo/client.h"
 #include "asylo/util/logging.h"
