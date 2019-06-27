@@ -16,16 +16,16 @@
 
 load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
-    "enclave_loader",
-    "sim_enclave",
-    "sgx_enclave_test",
     "ASYLO_ALL_BACKENDS",
+    "enclave_loader",
+    "sgx_enclave_test",
+    "sim_enclave",
 )
 load(
     "@com_google_asylo//asylo/bazel:proto.bzl",
     "asylo_proto_library",
-    "asylo_grpc_proto_library",
 )
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 
 licenses(["notice"])  # Apache v2.0
 
@@ -36,20 +36,34 @@ package(
 )
 
 # The generated code for the translator server (and client).
-asylo_grpc_proto_library(
-    name = "translator_server_grpc_proto",
+proto_library(
+    name = "translator_server_proto",
     srcs = ["translator_server.proto"],
     tags = ASYLO_ALL_BACKENDS,
 )
 
+cc_proto_library(
+    name = "translator_server_cc_proto",
+    tags = ASYLO_ALL_BACKENDS,
+    deps = [":translator_server_proto"],
+)
+
+cc_grpc_library(
+    name = "translator_server",
+    srcs = [":translator_server_proto"],
+    grpc_only = True,
+    tags = ASYLO_ALL_BACKENDS,
+    deps = [":translator_server_cc_proto"],
+)
+
 # The implementation of the translation server.
 cc_library(
-    name = "translator_server",
-    srcs = ["translator_server.cc"],
-    hdrs = ["translator_server.h"],
+    name = "translator_server_impl",
+    srcs = ["translator_server_impl.cc"],
+    hdrs = ["translator_server_impl.h"],
     tags = ASYLO_ALL_BACKENDS,
     deps = [
-        ":translator_server_grpc_proto",
+        ":translator_server",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -65,18 +79,24 @@ asylo_proto_library(
     deps = ["@com_google_asylo//asylo:enclave_proto"],
 )
 
+cc_proto_library(
+    name = "grpc_server_config_cc_proto",
+    deps = [":grpc_server_config_proto"],
+)
+
 # The enclave hosting the translation server.
 sim_enclave(
     name = "grpc_server_enclave.so",
     srcs = ["grpc_server_enclave.cc"],
     config = "@com_google_asylo//asylo/grpc/util:grpc_enclave_config",
     deps = [
-        ":grpc_server_config_proto_cc",
-        ":translator_server",
+        ":grpc_server_config_cc_proto",
+        ":translator_server_impl",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
         "@com_google_asylo//asylo:enclave_runtime",
@@ -91,7 +111,7 @@ enclave_loader(
     enclaves = {"enclave": ":grpc_server_enclave.so"},
     loader_args = ["--enclave_path='{enclave}'"],
     deps = [
-        ":grpc_server_config_proto_cc",
+        ":grpc_server_config_cc_proto",
         "@com_github_gflags_gflags//:gflags_nothreads",
         "@com_google_asylo//asylo:enclave_client",
         "@com_google_asylo//asylo/util:logging",
@@ -107,7 +127,7 @@ sgx_enclave_test(
     enclaves = {"server_enclave": ":grpc_server_enclave.so"},
     test_args = ["--enclave_path='{server_enclave}'"],
     deps = [
-        ":translator_server_grpc_proto",
+        ":translator_server",
         "@com_github_gflags_gflags//:gflags_nothreads",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/base:core_headers",

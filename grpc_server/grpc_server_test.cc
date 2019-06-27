@@ -16,7 +16,10 @@
  *
  */
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <sys/wait.h>
+
 #include <iostream>
 #include <memory>
 #include <regex>
@@ -25,8 +28,6 @@
 #include <tuple>
 #include <vector>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include "absl/base/thread_annotations.h"
 #include "absl/memory/memory.h"
 #include "absl/strings/numbers.h"
@@ -80,11 +81,14 @@ class ServerEnclaveExecTester : public asylo::experimental::ExecTester {
     std::cmatch port_message_match;
     if (std::regex_search(line.c_str(), port_message_match,
                           port_message_regex)) {
+      // Create a binding for the message match string so that it outlives the
+      // std::cmatch below that will contain references into it.
+      std::string port_message_match_string = port_message_match.str();
       std::cmatch port_match;
-      EXPECT_TRUE(std::regex_search(port_message_match.str().c_str(),
+      EXPECT_TRUE(std::regex_search(port_message_match_string.c_str(),
                                     port_match, port_regex))
           << absl::StrCat("Could not find port number in \"",
-                          port_message_match.str(), "\"");
+                          port_message_match_string, "\"");
       server_port_found_ = true;
       absl::MutexLock lock(server_thread_state_mutex_);
       EXPECT_TRUE(absl::SimpleAtoi(port_match.str(), server_port_))

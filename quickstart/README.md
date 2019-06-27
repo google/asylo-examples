@@ -80,8 +80,8 @@ instructions on Docker usage.
 docker pull gcr.io/asylo-framework/asylo
 MY_PROJECT=~/asylo-examples
 mkdir -p "${MY_PROJECT}"
-wget -q -O - https://asylo.dev/asylo-examples.tar.gz | \
-    tar -zxv --directory "${MY_PROJECT}"
+wget -q -O - https://github.com/google/asylo-examples/archive/master.tar.gz | \
+    tar -zxv --strip 1 --directory "${MY_PROJECT}"
 ```
 
 Note that you can set `MY_PROJECT` to any directory of your choice. This
@@ -343,11 +343,16 @@ asylo_proto_library(
     deps = ["@com_google_asylo//asylo:enclave_proto"],
 )
 
+cc_proto_library(
+    name = "demo_cc_proto",
+    deps = [":demo_proto"],
+)
+
 sim_enclave(
     name = "demo_enclave",
     srcs = ["demo_enclave.cc"],
     deps = [
-        ":demo_proto_cc",
+        ":demo_cc_proto",
         "@com_google_asylo//asylo:enclave_runtime",
     ],
 )
@@ -358,7 +363,7 @@ enclave_loader(
     enclaves = {"enclave": ":demo_enclave"},
     loader_args = ["--enclave_path='{enclave}'"],
     deps = [
-        ":demo_proto_cc",
+        ":demo_cc_proto",
         "@com_google_asylo//asylo:enclave_client",
         "@com_github_gflags_gflags//:gflags_nothreads",
         "@com_google_asylo//asylo/util:logging",

@@ -20,13 +20,14 @@
 #include <memory>
 
 #include "absl/base/thread_annotations.h"
+#include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "asylo/trusted_application.h"
 #include "asylo/util/status.h"
 #include "grpc_server/grpc_server_config.pb.h"
-#include "grpc_server/translator_server.h"
+#include "grpc_server/translator_server_impl.h"
 #include "include/grpcpp/grpcpp.h"
 #include "include/grpcpp/security/server_credentials.h"
 #include "include/grpcpp/server.h"
@@ -35,7 +36,7 @@
 namespace examples {
 namespace grpc_server {
 
-// An enclave that runs a TranslatorServer. We override the methods of
+// An enclave that runs a TranslatorServerImpl. We override the methods of
 // TrustedApplication as follows:
 //
 // * Initialize starts the gRPC server.
@@ -70,7 +71,7 @@ class GrpcServerEnclave final : public asylo::TrustedApplication {
   std::unique_ptr<::grpc::Server> server_ GUARDED_BY(server_mutex_);
 
   // The translation service.
-  TranslatorServer service_;
+  TranslatorServerImpl service_;
 
   // An object that gets notified when the server receives a shutdown RPC.
   absl::Notification shutdown_requested_;
@@ -92,6 +93,11 @@ asylo::Status GrpcServerEnclave::Initialize(
   if (!enclave_config.HasExtension(server_max_lifetime)) {
     return asylo::Status(asylo::error::GoogleError::INVALID_ARGUMENT,
                          "Expected a server_max_lifetime extension on config.");
+  }
+
+  if (!enclave_config.HasExtension(port)) {
+    return asylo::Status(asylo::error::GoogleError::INVALID_ARGUMENT,
+                         "Expected a port extension on config.");
   }
 
   shutdown_timeout_ =
@@ -116,8 +122,10 @@ asylo::Status GrpcServerEnclave::Initialize(
   // Neither the server nor its clients are authenticated, and no channels are
   // secured. This configuration is not suitable for a production environment.
   int selected_port;
-  builder.AddListeningPort(enclave_config.GetExtension(server_address),
-                           ::grpc::InsecureServerCredentials(), &selected_port);
+  builder.AddListeningPort(
+      absl::StrCat(enclave_config.GetExtension(server_address), ":",
+                   enclave_config.GetExtension(port)),
+      ::grpc::InsecureServerCredentials(), &selected_port);
 
   // Add the translator service to the server.
   builder.RegisterService(&service_);
