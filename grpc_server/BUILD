@@ -16,14 +16,10 @@
 
 load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
-    "ASYLO_ALL_BACKENDS",
+    "ASYLO_ALL_BACKEND_TAGS",
     "enclave_loader",
     "sgx_enclave_test",
     "sim_enclave",
-)
-load(
-    "@com_google_asylo//asylo/bazel:proto.bzl",
-    "asylo_proto_library",
 )
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 
@@ -39,12 +35,12 @@ package(
 proto_library(
     name = "translator_server_proto",
     srcs = ["translator_server.proto"],
-    tags = ASYLO_ALL_BACKENDS,
+    tags = ASYLO_ALL_BACKEND_TAGS,
 )
 
 cc_proto_library(
     name = "translator_server_cc_proto",
-    tags = ASYLO_ALL_BACKENDS,
+    tags = ASYLO_ALL_BACKEND_TAGS,
     deps = [":translator_server_proto"],
 )
 
@@ -52,7 +48,7 @@ cc_grpc_library(
     name = "translator_server",
     srcs = [":translator_server_proto"],
     grpc_only = True,
-    tags = ASYLO_ALL_BACKENDS,
+    tags = ASYLO_ALL_BACKEND_TAGS,
     deps = [":translator_server_cc_proto"],
 )
 
@@ -61,7 +57,7 @@ cc_library(
     name = "translator_server_impl",
     srcs = ["translator_server_impl.cc"],
     hdrs = ["translator_server_impl.h"],
-    tags = ASYLO_ALL_BACKENDS,
+    tags = ASYLO_ALL_BACKEND_TAGS,
     deps = [
         ":translator_server",
         "@com_github_grpc_grpc//:grpc++",
@@ -73,7 +69,7 @@ cc_library(
 )
 
 # Contains extensions to enclave protos.
-asylo_proto_library(
+proto_library(
     name = "grpc_server_config_proto",
     srcs = ["grpc_server_config.proto"],
     deps = ["@com_google_asylo//asylo:enclave_proto"],
@@ -112,7 +108,8 @@ enclave_loader(
     loader_args = ["--enclave_path='{enclave}'"],
     deps = [
         ":grpc_server_config_cc_proto",
-        "@com_github_gflags_gflags//:gflags_nothreads",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
         "@com_google_asylo//asylo:enclave_client",
         "@com_google_asylo//asylo/util:logging",
     ],
@@ -128,9 +125,9 @@ sgx_enclave_test(
     test_args = ["--enclave_path='{server_enclave}'"],
     deps = [
         ":translator_server",
-        "@com_github_gflags_gflags//:gflags_nothreads",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",

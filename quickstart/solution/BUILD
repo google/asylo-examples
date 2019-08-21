@@ -25,10 +25,9 @@ load(
     "enclave_loader",
     "sim_enclave",
 )
-load("@com_google_asylo//asylo/bazel:proto.bzl", "asylo_proto_library")
 
 # Example and exercise for using Asylo toolkits.
-asylo_proto_library(
+proto_library(
     name = "demo_proto",
     srcs = ["demo.proto"],
     deps = ["@com_google_asylo//asylo:enclave_proto"],
@@ -59,7 +58,8 @@ enclave_loader(
     loader_args = ["--enclave_path='{enclave}'"],
     deps = [
         ":demo_cc_proto",
-        "@com_github_gflags_gflags//:gflags_nothreads",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
         "@com_google_asylo//asylo:enclave_client",
         "@com_google_asylo//asylo/util:logging",
     ],

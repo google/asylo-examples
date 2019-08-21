@@ -31,12 +31,12 @@ even a user running with root privileges.
 ### Asylo support to run Redis
 
 Asylo is an open source framework for developing enclave applications. Asylo
-provides support for full-featured applications, such as Redis 5.0.4, to run
+provides support for full-featured applications, such as Redis 5.0.5, to run
 inside an enclave. We also provide an application-wrapper to make it easy to run
 an application in an enclave without any source code changes, along with a BUILD
 file that allows external sources to be built with Bazel.
 
-## Build Redis 5.0.4 with Asylo
+## Build Redis 5.0.5 with Asylo
 
 ### Setting up the environment in Docker
 
@@ -63,16 +63,18 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Asylo
 http_archive(
     name = "com_google_asylo",
-    urls = ["https://github.com/google/asylo/archive/v0.3.4.tar.gz"],
-    strip_prefix = "asylo-0.3.4",
+    urls = ["https://github.com/google/asylo/archive/v0.4.0.tar.gz"],
+    sha256 = "9dd8063d1a8002f6cc729f0115e2140a2eb1b14a10c111411f6b554e14ee739c",
+    strip_prefix = "asylo-0.4.0",
 )
 
 # Redis
 http_archive(
     name = "com_github_antirez_redis",
     build_file = "@com_google_asylo//asylo/distrib:redis.BUILD",
-    urls = ["https://github.com/antirez/redis/archive/5.0.4.tar.gz"],
-    strip_prefix = "redis-5.0.4",
+    urls = ["https://github.com/antirez/redis/archive/5.0.5.tar.gz"],
+    sha256 = "3313d5e09938dc6e16c6911efa4a24b1c494bacb5a917a8e7925ebd55e56be85",
+    strip_prefix = "redis-5.0.5",
 )
 
 load("@com_google_asylo//asylo/bazel:asylo_deps.bzl", "asylo_deps")
@@ -83,8 +85,8 @@ sgx_deps()
 ```
 
 This bazel rule imports Asylo and Redis. To build Redis with Bazel, Asylo
-provides the BUILD file for Redis 5.0.4, located at
-`@com_google_asylo/asylo/distrib/redis:BUILD.bazel`.
+provides the BUILD file for Redis 5.0.5, located at
+`@com_google_asylo/asylo/distrib/redis.BUILD`.
 
 #### Add .bazelrc
 
@@ -94,7 +96,7 @@ Next, in the same workspace, create a `.bazelrc` file by copying from
 This file specifies the toolchain and configurations used to build Asylo
 targets.
 
-#### Build target for Redis 5.0.4 with application wrapper
+#### Build target for Redis 5.0.5 in SGX Simulation mode
 
 Asylo provides an application wrapper which makes it easy to run external user
 applications in Asylo. To make use of it, create a BUILD file in your workspace,
@@ -114,7 +116,7 @@ sgx_enclave_configuration(
 
 cc_enclave_binary(
     name = "asylo_redis",
-    enclave_config = "redis_enclave_configuration",
+    enclave_build_config = "redis_enclave_configuration",
     deps = ["@com_github_antirez_redis//:redis_main"],
 )
 ```
@@ -126,7 +128,7 @@ is not sufficient to run Redis, so we need to also pass an
 `sgx_enclave_configuration` to increase both the stack and heap size in order to
 run Redis.
 
-## Run Redis Server
+## Run Redis Server in SGX Simulation mode
 
 Now we are ready to build and run Redis server. First, we load a docker
 container that imports the current workspace by running the following Docker
@@ -151,6 +153,8 @@ As the Redis build target is created, now it can be built with the following
 ```shell
 bazel build --config=sgx-sim :asylo_redis
 ```
+
+Specifying `--config=sgx-sim` builds Redis in SGX simulation mode.
 
 After the target is built, run the following command to start Redis server:
 
@@ -181,10 +185,10 @@ setting/getting keys:
 ```shell
 192.168.9.2:6379> ping
 PONG
-192.168.9.2:6379> set redis 5.0.4
+192.168.9.2:6379> set redis 5.0.5
 OK
 192.168.9.2:6379> get redis
-"5.0.4"
+"5.0.5"
 ```
 
 To enable snapshotting (if it's not automatically enabled by the config file),
@@ -198,7 +202,96 @@ These sets snapshotting after 900 seconds if there is at least 1 change to the
 dataset. You can modify the config to the snapshotting rate you would like to
 set.
 
-WARNING: The `fork` security support is not fully implemented yet. Currently
-`fork` in Asylo copies the enclave memory to untrusted memory without
-encryption. It is INSECURE and leaks all enclave data. We are working actively
-towards supporting secure `fork`.
+## Run Redis in SGX Hardware Mode
+
+The following steps show how to run enclavized Redis on SGX hardware.
+
+NOTE: The following steps only work on real SGX hardware.
+
+### Set up Enclave Config
+
+Redis uses `fork()` for snapshotting. Asylo provides a secure `fork()`
+implementation that uses an authenticated Diffie-Hellman key-exchange to
+establish secure communication between the parent and child enclaves so that
+parent's state is securely restored in a child enclave with the same identity.
+This security features requires configuring an SGX local assertion authority
+inside the enclave. The configuration is passed to the enclave via
+`EnclaveConfig`. Asylo's `cc_enclave_binary` Bazel macro supports providing a
+custom `EnclaveConfig` via the `application_enclave_config` parameter. The
+following BUILD file configures the enclave with an `EnclaveConfig` that
+contains an SGX local assertion authority config.
+
+NOTE: The security features of Asylo `fork()` are absent when running in
+simulation mode.
+
+```BUILD
+licenses(["notice"])
+
+load("@com_google_asylo//asylo/bazel:asylo.bzl", "cc_enclave_binary")
+load("@linux_sgx//:sgx_sdk.bzl", "sgx_enclave_configuration")
+
+sgx_enclave_configuration(
+    name = "redis_enclave_configuration",
+    stack_max_size = "0x400000",
+    heap_max_size = "0x1000000",
+)
+
+cc_enclave_binary(
+    name = "asylo_redis",
+    enclave_build_config = "redis_enclave_configuration",
+    application_enclave_config = "@com_google_asylo//redis:redis_enclave_config",
+    deps = ["@com_github_antirez_redis//:redis_main"],
+)
+```
+
+More details on security features provided by Asylo `fork()` can be found on the
+[Asylo website](https://asylo.dev/docs/reference/runtime.html).
+
+### Run Redis Server
+
+Similar as SGX simulation case, run the following docker command from the root
+of your project:
+
+```
+docker run -it --rm \
+    --device=/dev/isgx \
+    -v ${PWD}:/opt/my-project \
+    -v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket \
+    --tmpfs /root/.cache/bazel:exec \
+    -w /opt/my-project \
+    --network host \
+    gcr.io/asylo-framework/asylo
+```
+
+The SGX capabilities are propagated by the docker flags `--device=/dev/isgx` and
+`-v /var/run/aesmd/aesm.socket:/var/run/aesmd/aesm.socket`. More details can be
+found on the
+[Asylo website](https://asylo.dev/docs/guides/sgx_release_enclaves.html).
+
+In the container shell, build the target with the following `bazel` command:
+
+```shell
+bazel build --config=sgx :asylo_redis
+```
+
+Specifying `--config=sgx` builds Redis in SGX hardware mode.
+
+After the target is built, run the following command to start Redis server:
+
+```shell
+./bazel-bin/asylo_redis
+```
+
+After running it you should be able to see Redis server up and messages similar
+as following:
+
+```shell
+5884:M 25 Mar 2019 17:08:05.024 # Server initialized
+5884:M 25 Mar 2019 17:08:05.024 * Ready to accept connections
+```
+
+### Run Redis Client
+
+The steps to connect Redis client to a server that is running in SGX hardware
+mode are exactly the same as in SGX simulation mode. Please follow the steps
+above to connect to the enclavized Redis server and set/get keys.
