@@ -17,14 +17,13 @@
 licenses(["notice"])  # Apache v2.0
 
 package(
-    default_visibility = ["//visibility:public"],
+    default_visibility = [
+        "@com_google_asylo//asylo:implementation",
+    ],
 )
 
-load(
-    "@com_google_asylo//asylo/bazel:asylo.bzl",
-    "enclave_loader",
-    "sim_enclave",
-)
+load("@com_google_asylo//asylo/bazel:asylo.bzl", "enclave_loader")
+load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 
 # Example and exercise for using Asylo toolkits.
 proto_library(
@@ -38,11 +37,12 @@ cc_proto_library(
     deps = [":demo_proto"],
 )
 
-sim_enclave(
-    name = "demo_enclave",
+sgx.unsigned_enclave(
+    name = "demo_enclave_unsigned.so",
     srcs = ["demo_enclave.cc"],
     deps = [
         ":demo_cc_proto",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/strings",
         "@com_google_asylo//asylo:enclave_runtime",
         "@com_google_asylo//asylo/crypto:aes_gcm_siv",
@@ -51,16 +51,23 @@ sim_enclave(
     ],
 )
 
+sgx.debug_enclave(
+    name = "demo_enclave.so",
+    unsigned = "demo_enclave_unsigned.so",
+)
+
 enclave_loader(
     name = "quickstart",
     srcs = ["demo_driver.cc"],
-    enclaves = {"enclave": ":demo_enclave"},
+    enclaves = {"enclave": ":demo_enclave.so"},
     loader_args = ["--enclave_path='{enclave}'"],
     deps = [
         ":demo_cc_proto",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
+        "@com_google_asylo//asylo:enclave_cc_proto",
         "@com_google_asylo//asylo:enclave_client",
+        "@com_google_asylo//asylo/platform/primitives/sgx:loader_cc_proto",
         "@com_google_asylo//asylo/util:logging",
     ],
 )

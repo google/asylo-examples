@@ -18,8 +18,11 @@ load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
     "ASYLO_ALL_BACKEND_TAGS",
     "enclave_loader",
-    "sgx_enclave_test",
-    "sim_enclave",
+)
+load("@com_google_asylo//asylo/bazel:sgx_rules.bzl", "sgx_enclave_test")
+load(
+    "@linux_sgx//:sgx_sdk.bzl",
+    "sgx",
 )
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 
@@ -81,10 +84,9 @@ cc_proto_library(
 )
 
 # The enclave hosting the translation server.
-sim_enclave(
-    name = "grpc_server_enclave.so",
+sgx.unsigned_enclave(
+    name = "grpc_server_enclave_unsigned.so",
     srcs = ["grpc_server_enclave.cc"],
-    config = "@com_google_asylo//asylo/grpc/util:grpc_enclave_config",
     deps = [
         ":grpc_server_config_cc_proto",
         ":translator_server_impl",
@@ -100,6 +102,12 @@ sim_enclave(
     ],
 )
 
+sgx.debug_enclave(
+    name = "grpc_server_enclave.so",
+    unsigned = "grpc_server_enclave_unsigned.so",
+    config = "@com_google_asylo//asylo/grpc/util:grpc_enclave_config",
+)
+
 # The driver for the gRPC server enclave.
 enclave_loader(
     name = "grpc_server",
@@ -110,7 +118,9 @@ enclave_loader(
         ":grpc_server_config_cc_proto",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
+        "@com_google_asylo//asylo:enclave_cc_proto",
         "@com_google_asylo//asylo:enclave_client",
+        "@com_google_asylo//asylo/platform/primitives/sgx:loader_cc_proto",
         "@com_google_asylo//asylo/util:logging",
     ],
 )
@@ -122,9 +132,12 @@ sgx_enclave_test(
     srcs = ["grpc_server_test.cc"],
     data = [":grpc_server_host_loader"],
     enclaves = {"server_enclave": ":grpc_server_enclave.so"},
-    test_args = ["--enclave_path='{server_enclave}'"],
+    test_args = [
+        "--enclave_path='{server_enclave}'",
+    ],
     deps = [
         ":translator_server",
+        "@bazel_tools//tools/cpp/runfiles",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/flags:flag",

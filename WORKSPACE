@@ -5,17 +5,23 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Download and use the Asylo SDK.
 http_archive(
     name = "com_google_asylo",
-    urls = ["https://github.com/google/asylo/archive/v0.4.1.tar.gz"],
-    strip_prefix = "asylo-0.4.1",
-    sha256 = "6eb3f8ae4dd87a43d337286896874b47674aad1eff5c3568bd69a3d0bc5b26c0",
+    urls = ["https://github.com/google/asylo/archive/v0.5.0.tar.gz"],
+    strip_prefix = "asylo-0.5.0",
+    sha256 = "3828a77764a223b23b52e12db04753f3ff80a3682fe306b621ff7fc9667cb443",
 )
 load("@com_google_asylo//asylo/bazel:asylo_deps.bzl", "asylo_deps",
      "asylo_testonly_deps")
 asylo_deps()
 asylo_testonly_deps()
 
+# sgx_deps is only needed if --config=sgx or sgx-sim is used.
 load("@com_google_asylo//asylo/bazel:sgx_deps.bzl", "sgx_deps")
 sgx_deps()
 
+# remote_deps is only needed if remote backend is used.
+load("@com_google_asylo//asylo/bazel:remote_deps.bzl", "remote_deps")
+remote_deps()
+
+# grpc_deps is only needed if gRPC is used.
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 grpc_deps()

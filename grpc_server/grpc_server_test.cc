@@ -42,6 +42,7 @@
 #include "include/grpcpp/grpcpp.h"
 #include "include/grpcpp/security/credentials.h"
 #include "include/grpcpp/security/server_credentials.h"
+#include "tools/cpp/runfiles/runfiles.h"
 
 ABSL_FLAG(std::string, enclave_path, "",
           "The path to the server enclave to pass to the enclave loader");
@@ -51,6 +52,8 @@ ABSL_FLAG(int32_t, server_max_lifetime, 10,
 
 // A regex matching the log message that contains the port.
 constexpr char kPortMessageRegex[] = "Server started on port [0-9]+";
+
+using bazel::tools::cpp::runfiles::Runfiles;
 
 namespace examples {
 namespace grpc_server {
@@ -73,7 +76,7 @@ class ServerEnclaveExecTester : public asylo::experimental::ExecTester {
 
  protected:
   bool CheckLine(const std::string &line) override
-      LOCKS_EXCLUDED(*server_thread_state_mutex_) {
+      ABSL_LOCKS_EXCLUDED(*server_thread_state_mutex_) {
     const std::regex port_message_regex(kPortMessageRegex);
     const std::regex port_regex("[0-9]+");
 
@@ -103,25 +106,29 @@ class ServerEnclaveExecTester : public asylo::experimental::ExecTester {
   }
 
   bool FinalCheck(bool accumulated) override
-      LOCKS_EXCLUDED(*server_thread_state_mutex_) {
+      ABSL_LOCKS_EXCLUDED(*server_thread_state_mutex_) {
     return accumulated && server_port_found_;
   }
 
   bool server_port_found_;
   absl::Mutex *server_thread_state_mutex_;
-  int *server_port_ PT_GUARDED_BY(*server_thread_state_mutex_);
+  int *server_port_ ABSL_PT_GUARDED_BY(*server_thread_state_mutex_);
 };
 
 class GrpcServerTest : public ::testing::Test {
  public:
   // Spawns the enclave loader subprocess and waits for it to log the port
   // number. Fails if the log message is never seen.
-  void SetUp() override LOCKS_EXCLUDED(server_thread_state_mutex_) {
+  void SetUp() override ABSL_LOCKS_EXCLUDED(server_thread_state_mutex_) {
     ASSERT_NE(absl::GetFlag(FLAGS_enclave_path), "");
+    std::string error;
+    std::unique_ptr<Runfiles> runfiles(Runfiles::CreateForTest(&error));
+    ASSERT_NE(runfiles, nullptr) << error;
 
+    std::string loader_path = runfiles->Rlocation(
+        "asylo_examples/grpc_server/grpc_server_host_loader");
     const std::vector<std::string> argv({
-        asylo::experimental::ExecTester::BuildSiblingPath(
-            absl::GetFlag(FLAGS_enclave_path), "grpc_server_host_loader"),
+        loader_path,
         absl::StrCat("--enclave_path=", absl::GetFlag(FLAGS_enclave_path)),
         absl::StrCat("--server_max_lifetime=",
                      absl::GetFlag(FLAGS_server_max_lifetime)),
@@ -204,7 +211,7 @@ class GrpcServerTest : public ::testing::Test {
  private:
   // Waits for server_thread_ to either set server_port_ or terminate, then
   // returns the value of server_port_.
-  int GetServerPort() LOCKS_EXCLUDED(server_thread_state_mutex_) {
+  int GetServerPort() ABSL_LOCKS_EXCLUDED(server_thread_state_mutex_) {
     std::tuple<int *, bool *> args =
         std::make_tuple(&server_port_, &server_thread_finished_);
     server_thread_state_mutex_.LockWhen(absl::Condition(
@@ -227,8 +234,8 @@ class GrpcServerTest : public ::testing::Test {
   int server_exit_status_;
 
   absl::Mutex server_thread_state_mutex_;
-  bool server_thread_finished_ GUARDED_BY(server_thread_state_mutex_);
-  int server_port_ GUARDED_BY(server_thread_state_mutex_);
+  bool server_thread_finished_ ABSL_GUARDED_BY(server_thread_state_mutex_);
+  int server_port_ ABSL_GUARDED_BY(server_thread_state_mutex_);
 
   std::unique_ptr<Translator::Stub> stub_;
 };

@@ -18,11 +18,8 @@ licenses(["notice"])  # Apache v2.0
 
 # Hello World project for Asylo.
 
-load(
-    "@com_google_asylo//asylo/bazel:asylo.bzl",
-    "enclave_loader",
-    "sim_enclave",
-)
+load("@com_google_asylo//asylo/bazel:asylo.bzl", "enclave_loader")
+load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -41,8 +38,8 @@ cc_proto_library(
     deps = [":hello_proto"],
 )
 
-sim_enclave(
-    name = "hello_enclave.so",
+sgx.unsigned_enclave(
+    name = "hello_enclave_unsigned.so",
     srcs = ["hello_enclave.cc"],
     deps = [
         ":hello_cc_proto",
@@ -51,6 +48,11 @@ sim_enclave(
         "@com_google_asylo//asylo/util:logging",
         "@com_google_asylo//asylo/util:status",
     ],
+)
+
+sgx.debug_enclave(
+    name = "hello_enclave.so",
+    unsigned = "hello_enclave_unsigned.so",
 )
 
 enclave_loader(
@@ -63,7 +65,9 @@ enclave_loader(
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/strings",
+        "@com_google_asylo//asylo:enclave_cc_proto",
         "@com_google_asylo//asylo:enclave_client",
+        "@com_google_asylo//asylo/platform/primitives/sgx:loader_cc_proto",
         "@com_google_asylo//asylo/util:logging",
     ],
 )

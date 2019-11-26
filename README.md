@@ -1,6 +1,23 @@
-# Asylo - An open and flexible framework for enclave applications
+# Asylo ([asylo.dev](https://asylo.dev))
 
-Copyright 2018 Asylo authors
+Asylo is an open and flexible framework for developing enclave applications.
+Asylo lets you take advantage of a range of emerging trusted execution
+environments (TEEs), including both software and hardware isolation
+technologies.
+
+Asylo provides:
+
++   The ability to execute trusted workloads in an untrusted environment,
+    inheriting the confidentiality and integrity guarantees from the security
+    backend, i.e., the underlying enclave technology.
++   Ready-to-use containers, an open source API, libraries, and tools so you can
+    develop and run applications that use one or more enclaves.
++   A choice of security backends.
++   Portability of your application's source code across security backends.
+
+Asylo is under active development. We want to expand Asylo's capabilities to
+meet more developers' needs. To do this, we plan to add support for more
+backends, libraries, and languages.
 
 ## Documentation
 
@@ -19,8 +36,8 @@ There are several ways of getting support with Asylo:
     mailing list to participate in discussions and get help troubleshooting
     problems.
 +   Ask questions and find curated answers on
-    [StackOverflow](https://stackoverflow.com) using the
-    [asylo](https://stackoverflow.com/questions/tagged/asylo) tag.
+    [Stack Overflow](https://stackoverflow.com) using the
+    [`asylo`](https://stackoverflow.com/questions/tagged/asylo) tag.
 
 ## Build Environment in Docker (Recommended)
 
@@ -32,12 +49,20 @@ applications for various enclave backends.
 docker run -it --rm gcr.io/asylo-framework/asylo
 ```
 
-See the [Dockerfile](asylo/distrib/toolchain/Dockerfile) for an in-depth view of
-what's inside the container image.
+See the
+[Dockerfile](https://github.com/google/asylo/blob/master/asylo/distrib/toolchain/Dockerfile)
+for an in-depth view of what's inside the container image.
 
 See this
 [guide](https://cloud.google.com/container-registry/docs/pushing-and-pulling#pulling_images_from_the_registry)
 for additional details on how to pull images from Google's Container Registry.
+
+Some of Asylo's tests require IPv6 to be enabled in your Docker daemon. See this
+[guide](https://docs.docker.com/config/daemon/ipv6/) for how to enable IPv6.
+
+**Note**: If the Docker daemon fails to start with `"ipv6": true` added to the
+daemon.json file, you may also need to explicitly configure IPv6 subnet as shown
+[here](https://docs.docker.com/v17.09/engine/userguide/networking/default_network/ipv6/).
 
 ### Examples
 
@@ -65,7 +90,7 @@ docker run -it --rm \
     -v "${MY_PROJECT}":/opt/my-project \
     -w /opt/my-project \
     gcr.io/asylo-framework/asylo \
-    bazel run --config=enc-sim //hello_world -- --names="${NAMES}"
+    bazel run --config=sgx-sim //hello_world -- --names="${NAMES}"
 ```
 
 You can also set `NAMES` to a comma-separated list of names and see the
@@ -87,9 +112,9 @@ In the above example, we use the following Docker flags:
     run` command is executed in the example project.
 
 If using the Intel SGX hardware backend (see the
-[Manual Installation guide](INSTALL.md#intel-sgx-hardware-backend-support)), the
-following Docker flags are needed to propagate the necessary capabilities from
-the host:
+[Manual Installation guide](https://github.com/google/asylo/blob/master/INSTALL.md#intel-sgx-hardware-backend-support)),
+the following Docker flags are needed to propagate the necessary capabilities
+from the host:
 
 +   `--device=/dev/isgx` gives the container access to the SGX device that is
     used to interact with the SGX hardware features.
@@ -102,8 +127,8 @@ the host:
 In the above example, we use the following Bazel flags:
 
 +   `--config=CONFIG` configures the Asylo toolchain to build the target for a
-    given enclave backend. You can specify `--config=enc-sim` to build the
-    enclave for the enclave simulation backend or `--config=sgx` to build the
+    given enclave backend. You can specify `--config=sgx-sim` to build the
+    enclave for the Intel SGX simulation backend or `--config=sgx` to build the
     enclave for the Intel SGX hardware backend.
 +   `--names="${NAMES}"` is the argument passed to the `//hello_world` target.
 
@@ -137,7 +162,7 @@ This opens a terminal inside the Docker container. From this terminal, you can
 run Bazel as usual:
 
 ```bash
-bazel run --config=enc-sim //hello_world -- --names="${NAMES}"
+bazel run --config=sgx-sim //hello_world -- --names="${NAMES}"
 ```
 
 #### Running the regression tests
@@ -172,7 +197,8 @@ files to `/opt/asylo/sdk`.
 If you don't want to use the Asylo Docker image, you can manually install Asylo
 and its dependencies instead.
 
-See [INSTALL.md](INSTALL.md) for detailed installation steps.
+See [INSTALL.md](https://github.com/google/asylo/blob/master/INSTALL.md) for
+detailed installation steps.
 
 ### Examples
 
@@ -193,12 +219,12 @@ wget -q -O - https://github.com/google/asylo-examples/archive/master.tar.gz | \
 ```
 
 Next, use Bazel to build and run the `hello_world` application, which uses a
-simulated enclave backend:
+simulated SGX enclave backend:
 
 ```bash
 cd "${MY_PROJECT}"
 NAMES="${USER}"
-bazel run --config=enc-sim //hello_world -- --names="${NAMES}"
+bazel run --config=sgx-sim //hello_world -- --names="${NAMES}"
 ```
 
 Refer to
@@ -239,27 +265,47 @@ The following packages contain source code that may be of particular interest to
 users of the Asylo framework as well as those looking to contribute to Asylo
 development.
 
-+   [asylo](asylo)
-    +   [crypto/](asylo/crypto)
++   [asylo](https://github.com/google/asylo/tree/master/asylo)
+    +   [crypto/](https://github.com/google/asylo/tree/master/asylo/crypto)
         -   Crypto utilities and wrappers around BoringSSL.
-    +   [distrib/](asylo/distrib)
+    +   [distrib/](https://github.com/google/asylo/tree/master/asylo/distrib)
         -   Asylo toolchain and dependencies.
-    +   [examples/](asylo/examples)
+    +   [examples/](https://github.com/google/asylo/tree/master/asylo/examples)
         -   Sample applications written with the Asylo framework.
-    +   [grpc/](asylo/grpc)
-        +   [auth/](asylo/grpc/auth)
+    +   [grpc/](https://github.com/google/asylo/tree/master/asylo/grpc)
+        +   [auth/](https://github.com/google/asylo/tree/master/asylo/grpc/auth)
             -   gRPC authentication support.
-        +   [util/](asylo/grpc/util)
+        +   [util/](https://github.com/google/asylo/tree/master/asylo/grpc/util)
             -   Utilities for using gRPC from a trusted application.
-    +   [identity/](asylo/identity)
+    +   [identity/](https://github.com/google/asylo/tree/master/asylo/identity)
         -   Identity and attestation support.
-    +   [platform/](asylo/platform)
+    +   [platform/](https://github.com/google/asylo/tree/master/asylo/platform)
         -   Implementation of enclave platforms and backends.
-    +   [test/](asylo/test)
+    +   [test/](https://github.com/google/asylo/tree/master/asylo/test)
         -   Testing utilities provided to application writers.
-    +   [util/](asylo/util)
+    +   [util/](https://github.com/google/asylo/tree/master/asylo/util)
         -   Common utilities provided for use both inside and outside an enclave
             environment.
+
+## License
+
+Asylo is released under the [Apache 2.0 license](/LICENSE).
+
+```
+Copyright 2018 Asylo authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
 
 ## Disclaimers
 
