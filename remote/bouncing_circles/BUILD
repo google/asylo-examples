@@ -251,7 +251,7 @@ cc_binary(
     testonly = True,
     srcs = ["web_application.cc"],
     data = [
-        "@com_google_asylo//asylo/examples/remote/provision_server:certs",
+        "//remote/provision_server:certs",
     ],
     linkstatic = True,
     deps = [

@@ -1,4 +1,4 @@
-# Asylo ([asylo.dev](https://asylo.dev))
+# Asylo ([asylo.dev](https://asylo.dev)) [![Build status](https://badge.buildkite.com/34525fbee9a2289bba7f3ac74df984c8916e5e1725f45941fa.svg)](https://buildkite.com/asylo/asylo-docker-test-for-master-branch)
 
 Asylo is an open and flexible framework for developing enclave applications.
 Asylo lets you take advantage of a range of emerging trusted execution
@@ -258,14 +258,16 @@ following command:
 
 ## Repository Structure & Status
 
-This repository contains source code for the Asylo framework. The 0.3 release of
-the framework supports C++11 applications and a Bazel build environment.
+This repository contains source code for the Asylo framework. The framework
+supports C++17 applications (from release 0.4) and a Bazel build environment.
 
 The following packages contain source code that may be of particular interest to
 users of the Asylo framework as well as those looking to contribute to Asylo
 development.
 
-+   [asylo](https://github.com/google/asylo/tree/master/asylo)
++   [asylo/](https://github.com/google/asylo/tree/master/asylo)
+    +   [bazel/](https://github.com/google/asylo/tree/master/asylo/bazel)
+        -   Libraries for Asylo development in the Bazel build system.
     +   [crypto/](https://github.com/google/asylo/tree/master/asylo/crypto)
         -   Crypto utilities and wrappers around BoringSSL.
     +   [distrib/](https://github.com/google/asylo/tree/master/asylo/distrib)
@@ -289,7 +291,8 @@ development.
 
 ## License
 
-Asylo is released under the [Apache 2.0 license](/LICENSE).
+Asylo is released under the
+[Apache 2.0 license](https://github.com/google/asylo/blob/master/LICENSE).
 
 ```
 Copyright 2018 Asylo authors

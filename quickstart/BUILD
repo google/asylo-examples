@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+load("@com_google_asylo//asylo/bazel:asylo.bzl", "cc_unsigned_enclave", "debug_sign_enclave", "enclave_loader")
+load("@linux_sgx//:sgx_sdk.bzl", "sgx")
+
 licenses(["notice"])  # Apache v2.0
 
 package(
@@ -21,9 +24,6 @@ package(
         "@com_google_asylo//asylo:implementation",
     ],
 )
-
-load("@com_google_asylo//asylo/bazel:asylo.bzl", "enclave_loader")
-load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 
 # Example and exercise for using Asylo toolkits.
 proto_library(
@@ -37,7 +37,7 @@ cc_proto_library(
     deps = [":demo_proto"],
 )
 
-sgx.unsigned_enclave(
+cc_unsigned_enclave(
     name = "demo_enclave_unsigned.so",
     srcs = ["demo_enclave.cc"],
     deps = [
@@ -45,13 +45,13 @@ sgx.unsigned_enclave(
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/strings",
         "@com_google_asylo//asylo:enclave_runtime",
-        "@com_google_asylo//asylo/crypto:aes_gcm_siv",
+        "@com_google_asylo//asylo/crypto:aead_cryptor",
         "@com_google_asylo//asylo/util:cleansing_types",
         "@com_google_asylo//asylo/util:status",
     ],
 )
 
-sgx.debug_enclave(
+debug_sign_enclave(
     name = "demo_enclave.so",
     unsigned = "demo_enclave_unsigned.so",
 )
@@ -59,6 +59,7 @@ sgx.debug_enclave(
 enclave_loader(
     name = "quickstart",
     srcs = ["demo_driver.cc"],
+    backends = sgx.backend_labels,  # Has SGX loader dependencies
     enclaves = {"enclave": ":demo_enclave.so"},
     loader_args = ["--enclave_path='{enclave}'"],
     deps = [
@@ -67,7 +68,12 @@ enclave_loader(
         "@com_google_absl//absl/flags:parse",
         "@com_google_asylo//asylo:enclave_cc_proto",
         "@com_google_asylo//asylo:enclave_client",
-        "@com_google_asylo//asylo/platform/primitives/sgx:loader_cc_proto",
         "@com_google_asylo//asylo/util:logging",
-    ],
+    ] + select(
+        {
+            "@linux_sgx//:sgx_hw": ["@com_google_asylo//asylo/platform/primitives/sgx:loader_cc_proto"],
+            "@linux_sgx//:sgx_sim": ["@com_google_asylo//asylo/platform/primitives/sgx:loader_cc_proto"],
+        },
+        no_match_error = "quickstart is only configured to use the SGX backends",
+    ),
 )

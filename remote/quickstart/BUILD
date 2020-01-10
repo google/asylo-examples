@@ -15,12 +15,7 @@
 #
 
 load("@com_google_asylo//asylo/bazel:asylo.bzl", "enclave_loader")
-load("@com_google_asylo//asylo/bazel:sgx_rules.bzl", "sgx_enclave_test")
-load(
-    "@linux_sgx//:sgx_sdk.bzl",
-    "sgx_debug_enclave",
-    "sgx_unsigned_enclave",
-)
+load("@com_google_asylo//asylo/bazel:sgx_rules.bzl", "sgx_cc_unsigned_enclave", "sgx_debug_sign_enclave", "sgx_enclave_test")
 load("@com_google_asylo//asylo/bazel:copts.bzl", "ASYLO_DEFAULT_COPTS")
 
 licenses(["notice"])  # Apache v2.0
@@ -37,7 +32,7 @@ cc_proto_library(
     deps = [":demo_proto"],
 )
 
-sgx_unsigned_enclave(
+sgx_cc_unsigned_enclave(
     name = "demo_enclave_unsigned.so",
     srcs = ["demo_enclave.cc"],
     deps = [
@@ -45,13 +40,13 @@ sgx_unsigned_enclave(
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/strings",
         "@com_google_asylo//asylo:enclave_runtime",
-        "@com_google_asylo//asylo/crypto:aes_gcm_siv",
+        "@com_google_asylo//asylo/crypto:aead_cryptor",
         "@com_google_asylo//asylo/util:cleansing_types",
         "@com_google_asylo//asylo/util:status",
     ],
 )
 
-sgx_debug_enclave(
+sgx_debug_sign_enclave(
     name = "demo_enclave_debug.so",
     unsigned = ":demo_enclave_unsigned.so",
 )
@@ -85,7 +80,7 @@ cc_binary(
     testonly = True,
     srcs = ["demo_driver.cc"],
     data = [
-        "@com_google_asylo//asylo/examples/remote/provision_server:certs",
+        "//remote/provision_server:certs",
     ],
     deps = [
         ":demo_cc_proto",

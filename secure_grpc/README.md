@@ -5,9 +5,9 @@ title: Secure gRPC Example
 
 overview: A code example illustrating how to use Asylo's secure gRPC support.
 
-location: /_docs/guides/secure_grpc/README.md
+location: /_docs/guides/secure_grpc.md
 
-order: 15
+order: 25
 
 layout: docs
 
@@ -27,6 +27,9 @@ using the features described in Asylo's
 Specifically, the guide demonstrates how to configure the authentication
 policies on two gRPC endpoints, and how to enforce a per-call authorization
 policy based on enclave identity in the gRPC server.
+
+The source files for this example are located in the
+[asylo/examples/secure_grpc](/secure_grpc) folder.
 
 This guide builds on the concepts introduced in the
 [Asylo gRPC Server Example](https://asylo.dev/docs/guides/grpc_server.html).
@@ -127,7 +130,8 @@ Translation for "asylo" is "sanctuary"
 ## Server ACL
 
 In the above [command](#running-the-server-enclave) for running the server, the
-server uses ACL defined in `acl_isvprodid_2.textproto`:
+server uses ACL defined in
+[`acl_isvprodid_2.textproto`](/secure_grpc/acl_isvprodid_2.textproto):
 
 ```textproto
 # Message type: asylo.SgxIdentityExpectation
@@ -192,17 +196,18 @@ sgx_enclave_configuration(
 
 WARNING: This ACL specifies an MRSIGNER value corresponding to Asylo’s RSA-3072
 debug signing key. This key is used to sign all enclaves defined as
-`sgx.debug_enclave` targets, like the ones used in this example. The private key
-is distributed in plaintext within Asylo. As such, the key is not trustworthy
-and enclaves signed with this key should not be used within production systems.
-We recommend following
+`debug_sign_enclave` targets, like the ones used in this example. The private
+key is distributed in plaintext within Asylo. As such, the key is not
+trustworthy and enclaves signed with this key should not be used within
+production systems. We recommend following
 [Intel’s suggested key stewardship practices](https://software.intel.com/en-us/node/702980)
 for safeguarding enclave-signing keys.
 
 ## Authorization Failure: Wrong ISVPRODID
 
-Let’s try running the server with a different ACL. The `acl_isvprodid_3.proto`
-file specifies an ACL for an ISVPRODID of `3`, which does not match the client’s
+Let’s try running the server with a different ACL. The
+[`acl_isvprodid_3.proto`](/secure_grpc/acl_isvprodid_3.textproto): file
+specifies an ACL for an ISVPRODID of `3`, which does not match the client’s
 signer-assigned identity:
 
 ```bash
@@ -252,10 +257,11 @@ contains bits about the enclave’s execution environment. The DEBUG bit is
 
 We can enforce that the peer is a non-debug enclave by setting an expectation on
 the peer’s SGX ATTRIBUTES in the server’s ACL. This is shown in
-`acl_non_debug.textproto`, which sets ATTRIBUTES to `0x0` in the reference
-identity, and the ATTRIBUTES match mask to `0x2`. This indicates that the DEBUG
-bit in the peer’s identity _must_ match the value of the DEBUG bit the reference
-identity (i.e., the peer must *not* be a DEBUG enclave).
+[`acl_non_debug.textproto`](/secure_grpc/acl_non_debug.textproto), which sets
+ATTRIBUTES to `0x0` in the reference identity, and the ATTRIBUTES match mask to
+`0x2`. This indicates that the DEBUG bit in the peer’s identity _must_ match the
+value of the DEBUG bit the reference identity (i.e., the peer must *not* be a
+DEBUG enclave).
 
 ```textproto
 # Message type: asylo.SgxIdentityExpectation

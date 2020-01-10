@@ -303,19 +303,22 @@ constexpr uint8_t kAesKey128[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
                                   0x12, 0x13, 0x14, 0x15};
 
 // Encrypts a message against `kAesKey128` and returns a 12-byte nonce followed
-// by authenticated ciphertext, encoded as a hex string. `message` must be less
-// than or equal to `kMaxMessageSize` in length.
+// by authenticated ciphertext, encoded as a hex string.
 const StatusOr<std::string> EncryptMessage(const std::string &message) {
-  AesGcmSivCryptor cryptor(kMaxMessageSize, new AesGcmSivNonceGenerator());
+  std::unique_ptr<AeadCryptor> cryptor;
+  ASYLO_ASSIGN_OR_RETURN(cryptor,
+                         AeadCryptor::CreateAesGcmSivCryptor(kAesKey128));
 
-  CleansingVector<uint8_t> key(kAesKey128,
-                               kAesKey128 + ABSL_ARRAYSIZE(kAesKey128));
-  CleansingString additional_authenticated_data;
-  CleansingString nonce;
-  CleansingString ciphertext;
-  ASYLO_RETURN_IF_ERROR(cryptor.Seal(key, additional_authenticated_data,
-                                     message, &nonce, &ciphertext));
-  return absl::BytesToHexString(absl::StrCat(nonce, ciphertext));
+  std::vector<uint8_t> additional_authenticated_data;
+  std::vector<uint8_t> nonce(cryptor->NonceSize());
+  std::vector<uint8_t> ciphertext(message.size() + cryptor->MaxSealOverhead());
+  size_t ciphertext_size;
+
+  ASYLO_RETURN_IF_ERROR(cryptor->Seal(
+      message, additional_authenticated_data, absl::MakeSpan(nonce),
+      absl::MakeSpan(ciphertext), &ciphertext_size));
+
+  return absl::StrCat(BytesToHexString(nonce), BytesToHexString(ciphertext));
 }
 
 class EnclaveDemo : public TrustedApplication {
@@ -372,7 +375,7 @@ cc_proto_library(
     deps = [":demo_proto"],
 )
 
-sgx.unsigned_enclave(
+cc_unsigned_enclave(
     name = "demo_enclave_unsigned.so",
     srcs = ["demo_enclave.cc"],
     deps = [
@@ -386,7 +389,7 @@ sgx.unsigned_enclave(
     ],
 )
 
-sgx.debug_enclave(
+debug_sign_enclave(
     name = "demo_enclave.so",
     unsigned = "demo_enclave_unsigned.so",
 )
@@ -407,11 +410,11 @@ enclave_loader(
 ```
 
 The [Bazel](https://bazel.build) BUILD file shown above defines our enclave's
-logic in a `sgx.unsigned_enclave` called `demo_enclave_unsigned.so`. This target
+logic in a `cc_unsigned_enclave` called `demo_enclave_unsigned.so`. This target
 contains our implementation of `TrustedApplication` and is linked against the
-Asylo runtime. We use a `sgx.debug_enclave` rule to generate an enclave that has
-been signed with a debug key, and can be run in SGX simulation mode or on SGX
-hardware in debug mode.
+Asylo runtime. We use a `debug_sign_enclave` rule to generate an enclave that
+has been signed with a debug key, and can be run in supported backends (e.g.,
+SGX simulation mode or on SGX hardware in debug mode).
 
 The untrusted component is the target `:quickstart`, which contains code to
 handle the logic of initializing, running, and finalizing the enclave, as well
@@ -461,6 +464,4 @@ are some things to try:
     in the `EnclaveInput` message to support sending ciphertext into the enclave
     for decryption, using the provided `DecryptMessage` function.
 
-A sample
-[solution](https://github.com/google/asylo/tree/master/asylo/examples/quickstart/solution)
-is available on GitHub.
+A sample [solution](/quickstart/solution) is available on GitHub.

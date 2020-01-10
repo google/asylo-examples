@@ -14,12 +14,12 @@
 # limitations under the License.
 #
 
-licenses(["notice"])  # Apache v2.0
-
 # Hello World project for Asylo.
 
-load("@com_google_asylo//asylo/bazel:asylo.bzl", "enclave_loader")
+load("@com_google_asylo//asylo/bazel:asylo.bzl", "cc_unsigned_enclave", "debug_sign_enclave", "enclave_loader")
 load("@linux_sgx//:sgx_sdk.bzl", "sgx")
+
+licenses(["notice"])
 
 package(
     default_visibility = ["//visibility:public"],
@@ -38,7 +38,7 @@ cc_proto_library(
     deps = [":hello_proto"],
 )
 
-sgx.unsigned_enclave(
+cc_unsigned_enclave(
     name = "hello_enclave_unsigned.so",
     srcs = ["hello_enclave.cc"],
     deps = [
@@ -50,7 +50,7 @@ sgx.unsigned_enclave(
     ],
 )
 
-sgx.debug_enclave(
+debug_sign_enclave(
     name = "hello_enclave.so",
     unsigned = "hello_enclave_unsigned.so",
 )
@@ -58,6 +58,7 @@ sgx.debug_enclave(
 enclave_loader(
     name = "hello_world",
     srcs = ["hello_driver.cc"],
+    backends = sgx.backend_labels,  # Has SGX loader dependencies
     enclaves = {"enclave": ":hello_enclave.so"},
     loader_args = ["--enclave_path='{enclave}'"],
     deps = [

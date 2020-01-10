@@ -14,14 +14,13 @@
 # limitations under the License.
 #
 
+load("@com_google_asylo//asylo/bazel:asylo.bzl", "cc_unsigned_enclave", "debug_sign_enclave", "enclave_loader")
+
 licenses(["notice"])  # Apache v2.0
 
 package(
     default_visibility = ["//visibility:public"],
 )
-
-load("@com_google_asylo//asylo/bazel:asylo.bzl", "enclave_loader")
-load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 
 # Example and exercise for using Asylo toolkits.
 proto_library(
@@ -35,7 +34,7 @@ cc_proto_library(
     deps = [":demo_proto"],
 )
 
-sgx.unsigned_enclave(
+cc_unsigned_enclave(
     name = "demo_enclave_unsigned.so",
     srcs = ["demo_enclave.cc"],
     deps = [
@@ -43,13 +42,13 @@ sgx.unsigned_enclave(
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/strings",
         "@com_google_asylo//asylo:enclave_runtime",
-        "@com_google_asylo//asylo/crypto:aes_gcm_siv",
+        "@com_google_asylo//asylo/crypto:aead_cryptor",
         "@com_google_asylo//asylo/util:cleansing_types",
         "@com_google_asylo//asylo/util:status",
     ],
 )
 
-sgx.debug_enclave(
+debug_sign_enclave(
     name = "demo_enclave.so",
     unsigned = "demo_enclave_unsigned.so",
 )
