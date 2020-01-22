@@ -27,7 +27,7 @@
 #include "asylo/util/status.h"
 #include "secure_grpc/grpc_client_util.h"
 
-constexpr char kServerAddress[] = "[::1]";
+constexpr char kServerAddress[] = "localhost";
 
 ABSL_FLAG(std::string, enclave_path, "", "Path to enclave to load");
 ABSL_FLAG(int32_t, port, 0, "Port that the server listens to");

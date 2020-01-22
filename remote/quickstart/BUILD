@@ -14,9 +14,18 @@
 # limitations under the License.
 #
 
-load("@com_google_asylo//asylo/bazel:asylo.bzl", "enclave_loader")
-load("@com_google_asylo//asylo/bazel:sgx_rules.bzl", "sgx_cc_unsigned_enclave", "sgx_debug_sign_enclave", "sgx_enclave_test")
+load(
+    "@com_google_asylo//asylo/bazel:asylo.bzl",
+    "cc_unsigned_enclave",
+    "debug_sign_enclave",
+    "enclave_loader",
+    "enclave_test",
+)
+load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 load("@com_google_asylo//asylo/bazel:copts.bzl", "ASYLO_DEFAULT_COPTS")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 
 licenses(["notice"])  # Apache v2.0
 
@@ -32,7 +41,7 @@ cc_proto_library(
     deps = [":demo_proto"],
 )
 
-sgx_cc_unsigned_enclave(
+cc_unsigned_enclave(
     name = "demo_enclave_unsigned.so",
     srcs = ["demo_enclave.cc"],
     deps = [
@@ -46,7 +55,7 @@ sgx_cc_unsigned_enclave(
     ],
 )
 
-sgx_debug_sign_enclave(
+debug_sign_enclave(
     name = "demo_enclave_debug.so",
     unsigned = ":demo_enclave_unsigned.so",
 )
@@ -54,6 +63,7 @@ sgx_debug_sign_enclave(
 enclave_loader(
     name = "quickstart",
     srcs = ["demo_driver.cc"],
+    backends = sgx.backend_labels,
     enclaves = {"enclave": ":demo_enclave_debug.so"},
     loader_args = [
         "--enclave_path='{enclave}'",
@@ -97,10 +107,11 @@ cc_binary(
     ],
 )
 
-sgx_enclave_test(
+enclave_test(
     name = "demo_enclave_remote_test",
     size = "small",
     srcs = ["demo_enclave_remote_test.cc"],
+    backends = sgx.backend_labels,
     enclaves = {"enclave": ":demo_enclave_debug.so"},
     remote_proxy = "@com_google_asylo//asylo/util/remote:sgx_remote_proxy",
     tags = ["asylo-remote"],

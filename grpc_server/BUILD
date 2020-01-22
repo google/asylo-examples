@@ -23,7 +23,10 @@ load(
     "enclave_test",
 )
 load("@linux_sgx//:sgx_sdk.bzl", "sgx")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 
 licenses(["notice"])  # Apache v2.0
 
