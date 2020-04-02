@@ -47,7 +47,10 @@ The Asylo enclave runtime features rich POSIX support that allows full-featured
 serve as secure nodes in your distributed systems and cloud applications.
 
 The source files for this example are located in the
-[asylo/examples/grpc_server](/grpc_server) folder.
+[grpc_server](https://github.com/google/asylo-examples/tree/master/grpc_server)
+directory of [asylo-examples](https://github.com/google/asylo-examples).
+Download the latest release
+[here](https://github.com/google/asylo-examples/releases).
 
 ## Setting up the environment
 
@@ -89,7 +92,8 @@ service Translator {
 
 This document doesn't include the server implementation because the details are
 mostly irrelevant to this example. To learn about the server implementation, see
-[translator_server_impl.h](/grpc_server/translator_server_impl.h) and
+[translator_server_impl.h](/grpc_server/translator_server_impl.h)
+and
 [translator_server_impl.cc](/grpc_server/translator_server_impl.cc).
 
 ## Setting up a server enclave
@@ -301,8 +305,10 @@ module contains the core logic for invoking the `GrpcServerEnclave`'s
 entry-points. Each of its functions assumes that the `asylo::EnclaveManager`
 instance has been configured using `asylo::EnclaveManager::Configure()`.
 
-They are declared in [grpc_server_util.h](/grpc_server/grpc_server_util.h) and
-implemented in [grpc_server_util.cc](/grpc_server/grpc_server_util.cc).
+They are declared in
+[grpc_server_util.h](/grpc_server/grpc_server_util.h) and
+implemented in
+[grpc_server_util.cc](/grpc_server/grpc_server_util.cc).
 
 `LoadGrpcServerEnclave` loads the GrpcServerEnclave from `enclave_path`. If
 `debug_enclave` is true, then the enclave is started in debug mode. By loading
@@ -441,8 +447,8 @@ The driver then finalizes the enclave:
 
 ## Building the application
 
-To build the gRPC service with Bazel, the [BUILD file](/grpc_server/BUILD) needs
-the following targets:
+To build the gRPC service with Bazel, the
+[BUILD file](/grpc_server/BUILD) needs the following targets:
 
 *   A `proto_library` target that contains the proto definitions
 *   A `cc_proto_library` target that contains the C++ language specific proto

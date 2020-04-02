@@ -57,7 +57,7 @@ proto_library(
     srcs = ["grpc_server_config.proto"],
     deps = [
         "@com_google_asylo//asylo:enclave_proto",
-        "@com_google_asylo//asylo/identity/sgx:sgx_identity_proto",
+        "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_proto",
     ],
 )
 
@@ -83,7 +83,7 @@ cc_proto_library(
 )
 
 _grpc_server_sgx_deps = [
-    "@com_google_asylo//asylo/identity/sgx:sgx_identity_cc_proto",
+    "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_cc_proto",
     "@com_google_asylo//asylo/identity/sgx:sgx_identity_expectation_matcher",
     "@com_google_asylo//asylo/identity/sgx:sgx_identity_util",
 ]
@@ -170,7 +170,7 @@ cc_library(
         "@com_google_asylo//asylo:enclave_client",
         "@com_google_asylo//asylo/identity:enclave_assertion_authority_config_cc_proto",
         "@com_google_asylo//asylo/identity:enclave_assertion_authority_configs",
-        "@com_google_asylo//asylo/identity/sgx:sgx_identity_cc_proto",
+        "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_cc_proto",
         "@com_google_asylo//asylo/platform/primitives/sgx:loader_cc_proto",
         "@com_google_asylo//asylo/util:status",
         "@com_google_protobuf//:protobuf",
@@ -189,7 +189,7 @@ enclave_loader(
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/time",
         "@com_google_asylo//asylo:enclave_client",
-        "@com_google_asylo//asylo/identity/sgx:sgx_identity_cc_proto",
+        "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_cc_proto",
         "@com_google_asylo//asylo/util:logging",
         "@com_google_asylo//asylo/util:status",
         "@com_google_protobuf//:protobuf",
@@ -255,6 +255,9 @@ enclave_test(
     test_args = [
         "--server_enclave_path='{server_enclave}'",
         "--client_enclave_path='{client_enclave}'",
+        "--acl_isvprodid_2_path=$(rootpath :acl_isvprodid_2.textproto)",
+        "--acl_isvprodid_3_path=$(rootpath :acl_isvprodid_3.textproto)",
+        "--acl_non_debug_path=$(rootpath :acl_non_debug.textproto)",
     ],
     deps = [
         ":grpc_client_util",
@@ -266,10 +269,9 @@ enclave_test(
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/strings",
         "@com_google_asylo//asylo:enclave_client",
-        "@com_google_asylo//asylo/identity/sgx:sgx_identity_cc_proto",
+        "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_cc_proto",
         "@com_google_asylo//asylo/test/util:status_matchers",
         "@com_google_asylo//asylo/test/util:test_main",
-        "@com_google_asylo//asylo/util:path",
         "@com_google_asylo//asylo/util:status",
         "@com_google_googletest//:gtest",
         "@com_google_protobuf//:protobuf",

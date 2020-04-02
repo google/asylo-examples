@@ -73,8 +73,9 @@ link named "circles".
 The previous demo launched the application with local provisioning.
 
 To make it truly remote, we will now now utilize remote provisioning with our
-example remote [provision server](/remote/provision_server) and run the same
-application with enclaves deployed on another docker image.
+example remote
+[provision server](/remote/provision_server)
+and run the same application with enclaves deployed on another docker image.
 
 First, if you haven't already done so, download the Asylo SDK and Examples
 repos:

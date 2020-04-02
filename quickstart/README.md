@@ -464,4 +464,6 @@ are some things to try:
     in the `EnclaveInput` message to support sending ciphertext into the enclave
     for decryption, using the provided `DecryptMessage` function.
 
-A sample [solution](/quickstart/solution) is available on GitHub.
+A sample
+[solution](/quickstart/solution)
+is available on GitHub.
