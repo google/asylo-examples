@@ -201,7 +201,7 @@ BAZEL=bazel
 CP=cp
 
 # Build the signing material target.
-${BAZEL} build --config=sgx //package/path:enclave_signing_material
+${BAZEL} build //package/path:enclave_signing_material_sgx_hw
 
 # Copy out the generated signing material in order to sign it.
 ${CP} "$(${BAZEL} info bazel-bin)/package/path/enclave_signing_material.dat" "${RELEASE_DIR}"
@@ -218,13 +218,13 @@ guide.
 
 ### Step 4: Reincorporate the signed release data into the enclave binary
 
-The final enclave binary, `enclave.so`, can be produced once you have the signed
-signing material in your code tree. The example signature file is named
+The final enclave binary, `enclave_sgx_hw.so`, can be produced once you have the
+signed signing material in your code tree. The example signature file is named
 `enclave_signing_material.dat.sig`. The `sgx.signed_enclave` rule combines all
 the necessary components for a signed enclave.
 
 ```shell
-${BAZEL} build --config=sgx :enclave.so
+${BAZEL} build :enclave_sgx_hw.so
 ```
 
 ### Step 5: Launch the release enclave
@@ -238,10 +238,10 @@ untrusted application.
 The following example shows an invocation of a loader,
 `//package/path:enclave_loader`, that accepts the path of the enclave binary via
 a command-line flag (`--enclave_path`). Note that
-`--@com_google_asylo_backend_provider//:backend=//third_party/linux_sgx:asylo_sgx_hw`
-must be passed to the Bazel command that builds the loader so that the SGX SDK
-is built for hardware mode. If using the Asylo Docker image on an SGX-enabled
-host, note that you can propagate the SGX capabilities from the host with the
+`--@com_google_asylo_backend_provider//:backend=@linux_sgx//:asylo_sgx_hw` must
+be passed to the Bazel command that builds the loader so that the SGX SDK is
+built for hardware mode. If using the Asylo Docker image on an SGX-enabled host,
+note that you can propagate the SGX capabilities from the host with the
 following Docker flags:
 
 *   `--device=/dev/isgx`
@@ -259,7 +259,7 @@ DOCKER="docker run --rm --device=/dev/isgx \
   gcr.io/asylo-framework/asylo"
 BAZEL="${DOCKER} bazel"
 
-${BAZEL} run --@com_google_asylo_backend_provider//:backend=//third_party/linux_sgx:asylo_sgx_hw \
+${BAZEL} run --@com_google_asylo_backend_provider//:backend=@linux_sgx//:asylo_sgx_hw \
   //package/path:enclave_loader -- --enclave_path="${RELEASE_DIR}/enclave.so"
 ```
 

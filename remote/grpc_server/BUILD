@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
+load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
     "enclave_loader",
 )
-load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 
 licenses(["notice"])
 

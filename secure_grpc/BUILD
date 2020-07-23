@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+load("@linux_sgx//:sgx_sdk.bzl", "sgx")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
     "ASYLO_ALL_BACKEND_TAGS",
@@ -22,11 +25,7 @@ load(
     "enclave_loader",
     "enclave_test",
 )
-load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 load("@com_google_asylo//asylo/bazel:copts.bzl", "ASYLO_DEFAULT_COPTS")
-load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 
 licenses(["notice"])  # Apache v2.0
 
@@ -78,14 +77,13 @@ proto_library(
 
 cc_proto_library(
     name = "grpc_client_enclave_cc_proto",
-    visibility = ["@com_google_asylo//asylo:implementation"],
     deps = [":grpc_client_enclave_proto"],
 )
 
 _grpc_server_sgx_deps = [
     "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_cc_proto",
-    "@com_google_asylo//asylo/identity/sgx:sgx_identity_expectation_matcher",
-    "@com_google_asylo//asylo/identity/sgx:sgx_identity_util",
+    "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_expectation_matcher",
+    "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_util",
 ]
 
 # The enclave hosting the translation server.
@@ -191,6 +189,7 @@ enclave_loader(
         "@com_google_asylo//asylo:enclave_client",
         "@com_google_asylo//asylo/identity/platform/sgx:sgx_identity_cc_proto",
         "@com_google_asylo//asylo/util:logging",
+        "@com_google_asylo//asylo/util:proto_flag",
         "@com_google_asylo//asylo/util:status",
         "@com_google_protobuf//:protobuf",
     ],

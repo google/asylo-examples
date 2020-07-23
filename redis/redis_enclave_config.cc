@@ -17,9 +17,9 @@
  */
 
 #include "asylo/enclave.pb.h"
+#include "asylo/identity/attestation/sgx/sgx_local_assertion_authority_config.pb.h"
 #include "asylo/identity/descriptions.h"
 #include "asylo/identity/enclave_assertion_authority_config.pb.h"
-#include "asylo/identity/sgx/sgx_local_assertion_authority_config.pb.h"
 #include "asylo/util/logging.h"
 
 // The attestation domain is expected to be a 16-byte unique identifier.

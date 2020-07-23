@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+load("@linux_sgx//:sgx_sdk.bzl", "sgx")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
     "@com_google_asylo//asylo/bazel:asylo.bzl",
     "cc_unsigned_enclave",
@@ -21,11 +24,7 @@ load(
     "enclave_loader",
     "enclave_test",
 )
-load("@linux_sgx//:sgx_sdk.bzl", "sgx")
 load("@com_google_asylo//asylo/bazel:copts.bzl", "ASYLO_DEFAULT_COPTS")
-load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 
 licenses(["notice"])  # Apache v2.0
 
@@ -114,7 +113,10 @@ enclave_test(
     backends = sgx.backend_labels,
     enclaves = {"enclave": ":demo_enclave_debug.so"},
     remote_proxy = "@com_google_asylo//asylo/util/remote:sgx_remote_proxy",
-    tags = ["asylo-remote"],
+    tags = [
+        "asylo-remote",
+        "noregression",
+    ],
     test_args = [
         "--enclave_path='{enclave}'",
     ],

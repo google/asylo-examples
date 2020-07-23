@@ -49,9 +49,8 @@ applications for various enclave backends.
 docker run -it --rm gcr.io/asylo-framework/asylo
 ```
 
-See the
-[Dockerfile](https://github.com/google/asylo/blob/master/asylo/distrib/toolchain/Dockerfile)
-for an in-depth view of what's inside the container image.
+See the [Dockerfile](https://github.com/google/asylo/blob/master/asylo/distrib/toolchain/Dockerfile) for an in-depth view
+of what's inside the container image.
 
 See this
 [guide](https://cloud.google.com/container-registry/docs/pushing-and-pulling#pulling_images_from_the_registry)
@@ -87,7 +86,7 @@ docker run -it --rm \
     -v "${MY_PROJECT}":/opt/my-project \
     -w /opt/my-project \
     gcr.io/asylo-framework/asylo \
-    bazel run --config=sgx-sim //hello_world -- --names="${NAMES}"
+    bazel run //hello_world:hello_world_sgx_sim -- --names="${NAMES}"
 ```
 
 You can also set `NAMES` to a comma-separated list of names and see the
@@ -121,13 +120,10 @@ from the host:
 
 ##### Bazel flags and workspace settings
 
-In the above example, we use the following Bazel flags:
+In the above example, we use the following Bazel flag:
 
-+   `--config=CONFIG` configures the Asylo toolchain to build the target for a
-    given enclave backend. You can specify `--config=sgx-sim` to build the
-    enclave for the Intel SGX simulation backend or `--config=sgx` to build the
-    enclave for the Intel SGX hardware backend.
-+   `--names="${NAMES}"` is the argument passed to the `//hello_world` target.
++   `--names="${NAMES}"` is the argument passed to the
+    `//hello_world:hello_world_sgx_sim` target.
 
 Note: The example source code includes an additional Bazel configuration file,
 `.bazelrc`, at the root of the source tree. Remember to copy the contents of
@@ -159,7 +155,7 @@ This opens a terminal inside the Docker container. From this terminal, you can
 run Bazel as usual:
 
 ```bash
-bazel run --config=sgx-sim //hello_world -- --names="${NAMES}"
+bazel run //hello_world:hello_world_sgx_sim -- --names="${NAMES}"
 ```
 
 #### Running the regression tests
@@ -192,9 +188,8 @@ files to `/opt/asylo/sdk`.
 ## Manual Installation
 
 If you don't want to use the Asylo Docker image, you can manually install Asylo
-and its dependencies instead. See
-[INSTALL.md](https://github.com/google/asylo/blob/master/INSTALL.md) for
-detailed installation steps.
+and its dependencies instead. See [INSTALL.md](https://github.com/google/asylo/blob/master/INSTALL.md) for detailed
+installation steps.
 
 ### Examples
 
@@ -218,7 +213,7 @@ simulated SGX enclave backend:
 ```bash
 cd "${MY_PROJECT}"
 NAMES="${USER}"
-bazel run --config=sgx-sim //hello_world -- --names="${NAMES}"
+bazel run //hello_world:hello_world_sgx_sim -- --names="${NAMES}"
 ```
 
 Refer to
@@ -285,8 +280,7 @@ development.
 
 ## License
 
-Asylo is released under the
-[Apache 2.0 license](https://github.com/google/asylo/blob/master/LICENSE).
+Asylo is released under the [Apache 2.0 license](https://github.com/google/asylo/blob/master/LICENSE).
 
 ```
 Copyright 2018 Asylo authors
