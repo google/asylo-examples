@@ -5,9 +5,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Download and use the Asylo SDK.
 http_archive(
     name = "com_google_asylo",
-    sha256 = "bb6e9599f3e174321d96616ac8069fac76ce9d2de3bd0e4e31e1720c562e83f7",
-    strip_prefix = "asylo-0.6.0",
-    urls = ["https://github.com/google/asylo/archive/v0.6.0.tar.gz"],
+    sha256 = "efdb205f20de1814128f734fabffefcc0b85f822c6cfc4e3472424a745a687b6",
+    strip_prefix = "asylo-0.6.1",
+    urls = ["https://github.com/google/asylo/archive/v0.6.1.tar.gz"],
 )
 
 load(
