@@ -234,7 +234,7 @@ The peer is unauthorized for GetTranslation: ISVPRODID value 2 does not match ex
 The authorization failure is also reported by the client:
 
 ```
-2019-11-20 01:51:21  QFATAL  grpc_client_main.cc : 64 : Getting translation for asylo failed: ::asylo::error::GoogleErrorSpace::PERMISSION_DENIED: Peer is unauthorized for GetTranslation: ACL failed to match:
+2019-11-20 01:51:21  QFATAL  grpc_client_main.cc : 64 : Getting translation for asylo failed: ::error::GoogleError::PERMISSION_DENIED: Peer is unauthorized for GetTranslation: ACL failed to match:
   ISVPRODID value 2 does not match expected ISVPRODID value 3
 ```
 
@@ -366,6 +366,6 @@ authorized to make the RPC.
 
 [^1]: Running non-debug enclaves requires access to SGX hardware that supports
     [Flexible Launch Control (FLC)](https://software.intel.com/en-us/blogs/2018/12/09/an-update-on-3rd-party-attestation),
-    or a commercial license and whitelisted signing key on pre-FLC platforms.
+    or a commercial license and allowlisted signing key on pre-FLC platforms.
     For more information, see Intel’s guide for
     [Registering your Production Enclave](https://software.intel.com/en-us/sgx/request-license).

@@ -203,6 +203,7 @@ cc_library(
         ":attestation_domain",
         ":grpc_client_enclave_cc_proto",
         "//grpc_server:translator_server",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_asylo//asylo:enclave_cc_proto",
         "@com_google_asylo//asylo:enclave_client",

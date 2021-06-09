@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "asylo/trusted_application.h"
 #include "asylo/util/logging.h"
@@ -31,8 +32,8 @@ class HelloApplication : public asylo::TrustedApplication {
   asylo::Status Run(const asylo::EnclaveInput &input,
                     asylo::EnclaveOutput *output) override {
     if (!input.HasExtension(hello_world::enclave_input_hello)) {
-      return asylo::Status(asylo::error::GoogleError::INVALID_ARGUMENT,
-                           "Expected a HelloInput extension on input.");
+      return absl::InvalidArgumentError(
+          "Expected a HelloInput extension on input.");
     }
     std::string visitor =
         input.GetExtension(hello_world::enclave_input_hello).to_greet();
@@ -45,7 +46,7 @@ class HelloApplication : public asylo::TrustedApplication {
               absl::StrCat("Hello ", visitor, "! You are visitor #",
                            ++visitor_count_, " to this enclave."));
     }
-    return asylo::Status::OkStatus();
+    return absl::OkStatus();
   }
 
  private:

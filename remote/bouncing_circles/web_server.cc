@@ -32,13 +32,14 @@
 
 #include "absl/container/flat_hash_set.h"
 #include "absl/memory/memory.h"
+#include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "asylo/util/cleanup.h"
 #include "asylo/util/logging.h"
 #include "asylo/util/mutex_guarded.h"
-#include "asylo/util/posix_error_space.h"
+#include "asylo/util/posix_errors.h"
 #include "asylo/util/status.h"
 #include "asylo/util/statusor.h"
 
@@ -68,29 +69,28 @@ StatusOr<std::string> ReadRequest(int fd) {
   memset(buffer.get(), '\0', BUFSIZE + 1);
   const ssize_t ret = read(fd, buffer.get(), BUFSIZE);
   if (ret < -1) {
-    return Status{static_cast<error::PosixError>(errno),
-                  "Failed to read browser request"};
+    return LastPosixError("Failed to read browser request");
   }
   if (ret == 0) {
-    return Status{error::GoogleError::FAILED_PRECONDITION,
+    return Status{absl::StatusCode::kFailedPrecondition,
                   "Failed to read browser request"};
   }
   if (ret > BUFSIZE) {
-    return Status{error::GoogleError::FAILED_PRECONDITION,
+    return Status{absl::StatusCode::kFailedPrecondition,
                   "Browser request too long"};
   }
   // Strip header and extras.
   absl::string_view request(buffer.get(), ret);
   const auto header_pos = request.find(" HTTP/");
   if (header_pos == std::string::npos) {
-    return Status{error::GoogleError::FAILED_PRECONDITION,
+    return Status{absl::StatusCode::kFailedPrecondition,
                   absl::StrCat("No header found, ", request)};
   }
   request = request.substr(0, header_pos);
   if (!absl::ConsumePrefix(&request, "GET ") &&
       !absl::ConsumePrefix(&request, "get ")) {
     return Status{
-        error::GoogleError::FAILED_PRECONDITION,
+        absl::StatusCode::kFailedPrecondition,
         absl::StrCat("Only simple GET operation is supported, ", request)};
   }
   request = absl::StripLeadingAsciiWhitespace(request);
@@ -215,7 +215,7 @@ void WebServer::WorkerThread::WorkerThreadRunner(WebServer *server) {
     if (!request_result.ok()) {
       continue;
     }
-    const auto request = request_result.ValueOrDie();
+    const auto request = request_result.value();
 
     // Locate handler (if any).
     const auto handler = server->GetHandler(request);

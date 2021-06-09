@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "absl/base/macros.h"
+#include "absl/status/status.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_cat.h"
 #include "asylo/crypto/aead_cryptor.h"
@@ -33,7 +34,7 @@
 namespace asylo {
 namespace {
 
-// Dummy 128-bit AES key.
+// Example 128-bit AES key.
 constexpr uint8_t kAesKey128[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
                                   0x06, 0x07, 0x08, 0x09, 0x10, 0x11,
                                   0x12, 0x13, 0x14, 0x15};
@@ -77,7 +78,7 @@ const StatusOr<CleansingString> DecryptMessage(
 
   if (input_bytes.size() < cryptor->NonceSize()) {
     return Status(
-        error::GoogleError::INVALID_ARGUMENT,
+        absl::StatusCode::kInvalidArgument,
         absl::StrCat("Input too short: expected at least ",
                      cryptor->NonceSize(), " bytes, got ", input_bytes.size()));
   }
@@ -114,7 +115,7 @@ class EnclaveDemo : public TrustedApplication {
 
     std::cout << "Encrypted message:" << std::endl << result << std::endl;
 
-    return Status::OkStatus();
+    return absl::OkStatus();
   }
 
   // Retrieves user message from |input|.

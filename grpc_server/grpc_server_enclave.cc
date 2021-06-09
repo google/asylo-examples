@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "absl/base/thread_annotations.h"
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
@@ -46,20 +47,20 @@ namespace grpc_server {
 class GrpcServerEnclave final : public asylo::TrustedApplication {
  public:
   asylo::Status Initialize(const asylo::EnclaveConfig &enclave_config)
-      LOCKS_EXCLUDED(server_mutex_) override;
+      ABSL_LOCKS_EXCLUDED(server_mutex_) override;
 
   asylo::Status Run(const asylo::EnclaveInput &enclave_input,
                     asylo::EnclaveOutput *enclave_output) override;
 
   asylo::Status Finalize(const asylo::EnclaveFinal &enclave_final)
-      LOCKS_EXCLUDED(server_mutex_) override;
+      ABSL_LOCKS_EXCLUDED(server_mutex_) override;
 
  private:
   // Guards the |server_| member.
   absl::Mutex server_mutex_;
 
   // A gRPC server hosting |service_|.
-  std::unique_ptr<::grpc::Server> server_ GUARDED_BY(server_mutex_);
+  std::unique_ptr<::grpc::Server> server_ ABSL_GUARDED_BY(server_mutex_);
 
   // The translation service.
   std::unique_ptr<TranslatorServerImpl> service_;
@@ -69,16 +70,16 @@ class GrpcServerEnclave final : public asylo::TrustedApplication {
 };
 
 asylo::Status GrpcServerEnclave::Initialize(
-    const asylo::EnclaveConfig &enclave_config) LOCKS_EXCLUDED(server_mutex_) {
+    const asylo::EnclaveConfig &enclave_config)
+    ABSL_LOCKS_EXCLUDED(server_mutex_) {
   // Fail if there is no server_address available.
   if (!enclave_config.HasExtension(server_address)) {
-    return asylo::Status(asylo::error::GoogleError::INVALID_ARGUMENT,
-                         "Expected a server_address extension on config.");
+    return absl::InvalidArgumentError(
+        "Expected a server_address extension on config.");
   }
 
   if (!enclave_config.HasExtension(port)) {
-    return asylo::Status(asylo::error::GoogleError::INVALID_ARGUMENT,
-                         "Expected a port extension on config.");
+    return absl::InvalidArgumentError("Expected a port extension on config.");
   }
 
   // Lock |server_mutex_| so that we can start setting up the server.
@@ -86,8 +87,7 @@ asylo::Status GrpcServerEnclave::Initialize(
 
   // Check that the server is not already running.
   if (server_) {
-    return asylo::Status(asylo::error::GoogleError::ALREADY_EXISTS,
-                         "Server is already started");
+    return absl::AlreadyExistsError("Server is already started");
   }
 
   // Create a ServerBuilder object to set up the server.
@@ -111,21 +111,21 @@ asylo::Status GrpcServerEnclave::Initialize(
   // Start the server.
   server_ = builder.BuildAndStart();
   if (!server_) {
-    return asylo::Status(asylo::error::GoogleError::INTERNAL,
-                         "Failed to start server");
+    return absl::InternalError("Failed to start server");
   }
 
-  return asylo::Status::OkStatus();
+  return absl::OkStatus();
 }
 
 asylo::Status GrpcServerEnclave::Run(const asylo::EnclaveInput &enclave_input,
                                      asylo::EnclaveOutput *enclave_output) {
   enclave_output->SetExtension(actual_server_port, selected_port_);
-  return asylo::Status::OkStatus();
+  return absl::OkStatus();
 }
 
 asylo::Status GrpcServerEnclave::Finalize(
-    const asylo::EnclaveFinal &enclave_final) LOCKS_EXCLUDED(server_mutex_) {
+    const asylo::EnclaveFinal &enclave_final)
+    ABSL_LOCKS_EXCLUDED(server_mutex_) {
   // Lock |server_mutex_| so that we can start shutting down the server.
   absl::MutexLock lock(&server_mutex_);
 
@@ -140,7 +140,7 @@ asylo::Status GrpcServerEnclave::Finalize(
     server_.reset(nullptr);
   }
 
-  return asylo::Status::OkStatus();
+  return absl::OkStatus();
 }
 
 }  // namespace grpc_server
